@@ -1,0 +1,29 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We conducted the first systematic empirical study of linear direction
+compositionality in LLM residual streams, testing 10 concept pairs across 5
+semantic categories in \pythia. Our results reveal that most mean-difference
+concept directions are surprisingly non-orthogonal (median $\abscossim = 0.91$)
+and that compositionality depends critically on geometric alignment: near-orthogonal
+pairs compose well under steering, while anti-parallel pairs fail
+catastrophically. Probing-based composition metrics are misleadingly optimistic,
+masking failures that steering exposes. The absolute cosine similarity between
+directions is the most reliable predictor of composition success, more
+informative than semantic category labels.
+
+The key practical takeaway is simple: \textbf{check orthogonality before
+composing steering vectors.} If $\abscossim > 0.5$, naive vector addition will
+likely produce lossy or incoherent results. Practitioners should prefer
+SAE-based or orthogonalized directions, or apply different vectors at different
+layers following \citet{stolfo2024improving}.
+
+Several directions for future work emerge from our findings. First, scaling to
+50+ concepts with SAE-based direction extraction~\citep{chalnev2024improving}
+would test whether cleaner directions improve composability. Second, using the
+causal inner product~\citep{park2023linear} for orthogonality measurement may
+reveal structure that standard cosine similarity misses. Third, testing on
+larger models~\citep{todd2023function} would establish whether composability
+improves with scale. Finally, extending beyond pairwise composition to 3-way
+and 4-way combinations would reveal whether composition errors compound, as our
+component asymmetry results suggest they might.

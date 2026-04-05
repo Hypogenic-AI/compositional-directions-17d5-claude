@@ -1,0 +1,96 @@
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Model and Setup}
+
+We use \pythia~\citep{biderman2023pythia}, a 32-layer autoregressive
+transformer with $\dmodel = 2560$, accessed via
+\transformerlens~\citep{nanda2022transformerlens}. All experiments run on a
+single NVIDIA RTX~3090 (24\,GB) with PyTorch~2.4.1. We fix the random seed to
+42 throughout. The full experimental pipeline completes in approximately
+5~minutes.
+
+\subsection{Concept Direction Extraction}
+
+For each binary concept, we create 20 contrastive prompt pairs---sentences that
+differ primarily in the target concept (\eg ``The dog is a \emph{mammal}'' vs.\
+``The robin is a \emph{bird}''). We extract residual stream activations at the
+last token position across all layers. The concept direction is the normalized
+mean difference of positive and negative activations:
+\begin{equation}
+    \vd_c = \frac{\bar{\vx}^{+}_c - \bar{\vx}^{-}_c}
+                 {\|\bar{\vx}^{+}_c - \bar{\vx}^{-}_c\|}
+    \label{eq:direction}
+\end{equation}
+where $\bar{\vx}^{+}_c$ and $\bar{\vx}^{-}_c$ are the mean last-token
+activations for the positive and negative prompt sets of concept $c$,
+respectively.
+
+\subsection{Concept Taxonomy}
+
+We select 10 binary concepts organized into 5 categories spanning a predicted
+composability spectrum:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt,topsep=2pt]
+    \item \textbf{Hierarchical} (expected: compose well): mammal/bird,
+    fruit/vegetable---subcategories within a shared ontological hierarchy
+    \citep{park2024geometry}.
+    \item \textbf{Independent attributes} (expected: compose well):
+    positive/negative sentiment, formal/casual register---orthogonal
+    properties of text.
+    \item \textbf{Semantic relations} (expected: partial): big/small,
+    hot/cold---antonym pairs along different perceptual dimensions.
+    \item \textbf{Syntactic features} (expected: mixed): past/present tense,
+    singular/plural---grammatical properties that may share syntactic
+    encoding.
+    \item \textbf{Entangled} (expected: compose poorly): happy/sad,
+    true/false---concepts whose directions may overlap due to shared
+    affective or epistemic dimensions.
+\end{enumerate}
+
+From these 10 concepts, we select 10 concept pairs for composition testing,
+distributed across categories and spanning the expected composability range.
+
+\subsection{Composition Metrics}
+
+We evaluate compositionality using three complementary metrics, each capturing
+a different aspect of what it means for directions to ``compose.''
+
+\para{Metric 1: Orthogonality.}
+We compute the cosine similarity between each direction pair:
+\begin{equation}
+    \cossim(\dA, \dB) = \dA \cdot \dB
+    \label{eq:cosine}
+\end{equation}
+since both directions are unit-normalized. We report both signed cosine
+similarity and absolute cosine similarity $\abscossim$, as anti-parallel
+directions ($\cossim \approx -1$) interfere as much as parallel directions
+($\cossim \approx 1$).
+
+\para{Metric 2: Probing preservation.}
+We test whether both concepts remain linearly decodable from the composed
+direction $\dAB = \dA + \dB$. For each concept, we train a logistic regression
+probe on projections of the original contrastive activations onto $\dAB$ and
+measure classification accuracy. We report the \emph{preservation ratio}:
+\begin{equation}
+    \preservation_c = \frac{\text{Acc}(\text{probe on } \dAB)}
+                           {\text{Acc}(\text{probe on } \vd_c)}
+    \label{eq:preservation}
+\end{equation}
+A ratio of 1.0 means no information loss from composition.
+
+\para{Metric 3: Steering composition.}
+We add $\alpha \cdot \dAB$ to the residual stream of neutral prompts and
+measure logit shifts on concept-relevant tokens. For each component direction,
+we compute the \emph{component preservation}: the fraction of the individual
+steering effect retained in the composed vector's logit shift. We also measure
+\emph{shift alignment}: the cosine similarity between the composed logit shift
+and the sum of individual logit shifts.
+
+\subsection{Analysis Protocol}
+
+We analyze all metrics at 6 layers (5, 10, 15, 20, 25, 31), with layer~20 as
+the primary analysis layer. Statistical comparisons use one-way ANOVA across
+expected composability categories, Spearman rank correlation between
+orthogonality and composition metrics, and bootstrap 95\% confidence intervals
+(1000 resamples).

@@ -1,0 +1,56 @@
+\section{Introduction}
+\label{sec:intro}
+
+Adding two steering vectors and injecting the sum into a language model's
+residual stream is one of the simplest interventions in mechanistic
+interpretability. Practitioners use this trick to combine behavioral
+modifications---\eg making a model simultaneously more formal \emph{and} more
+concise---under the implicit assumption that linear directions compose via
+vector addition. But do they?
+
+The linear representation hypothesis provides theoretical grounding: concepts
+are encoded as directions in activation space, and causally separable concepts
+occupy orthogonal subspaces~\citep{park2023linear}. Under this view, adding two
+orthogonal concept vectors should steer both concepts independently.
+\citet{park2024geometry} extend this to show that hierarchically related
+concepts compose via vector arithmetic, and \citet{todd2023function} demonstrate
+that in-context-learned function vectors can be composed when sub-operations are
+separable. Yet these results cover isolated cases. No study has systematically
+tested \emph{which} linear directions compose and \emph{what predicts} their
+composability across a diverse set of concept types.
+
+This gap has practical consequences. Activation steering is increasingly used
+for model control~\citep{stolfo2024improving}, but individual steering vectors
+are already unreliable---per-sample steerability is highly
+variable~\citep{tan2024analyzing}, and single directions activate unintended
+features~\citep{chalnev2024improving}. Composing vectors without understanding
+their geometric relationship risks compounding these failure modes.
+
+We address this gap with a systematic empirical study. We extract linear
+directions for 10 binary concepts spanning 5 semantic categories in \pythia
+(32~layers, $\dmodel = 2560$) and test all 10 pre-selected concept pairs for
+compositionality using three complementary metrics: (1)~pairwise cosine
+similarity, measuring geometric alignment; (2)~probing-based preservation,
+measuring whether both concepts remain linearly decodable from the composed
+direction; and (3)~steering-based component preservation, measuring whether the
+composed vector shifts model logits in both intended directions. Our main
+findings are:
+
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We show that most mean-difference concept directions are
+    \textbf{surprisingly non-orthogonal} (median $\abscossim = 0.91$ at
+    layer~20), even for seemingly unrelated concepts, challenging the
+    assumption that independent concepts produce independent directions.
+    \item We demonstrate that \textbf{probing-based composition metrics are
+    misleadingly optimistic}: preservation is uniformly high (${\sim}0.95$),
+    while steering reveals stark composition failures for aligned direction
+    pairs.
+    \item We identify \textbf{absolute cosine similarity} between direction
+    pairs as the strongest predictor of steering composition success, with
+    near-orthogonal pairs ($\abscossim < 0.3$) composing well and
+    anti-parallel pairs failing catastrophically.
+    \item We provide the first \textbf{systematic taxonomy} of
+    compositionality across concept categories, finding that hierarchical
+    pairs compose best and entangled pairs compose worst, consistent with
+    theoretical predictions from \citet{park2023linear}.
+\end{itemize}

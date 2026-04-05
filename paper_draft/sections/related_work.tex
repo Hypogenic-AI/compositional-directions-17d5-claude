@@ -1,0 +1,63 @@
+\section{Related Work}
+\label{sec:related}
+
+\para{Linear representations in LLMs.}
+The linear representation hypothesis posits that high-level concepts are
+encoded as directions in LLM activation spaces. \citet{marks2023geometry}
+show that truth and falsehood are linearly separable in residual
+streams, with simple difference-in-mean probes generalizing across
+datasets. \citet{nanda2023emergent} find that Othello-playing networks
+learn linear board-state representations that can be manipulated via
+vector addition. \citet{park2023linear} formalize the hypothesis using
+counterfactual semantics and introduce the causal inner product, proving
+that causally separable concepts are orthogonal. \citet{park2024geometry}
+extend this framework to categorical and hierarchical concepts, showing
+that hierarchies are encoded as orthogonal subspaces. Our work builds
+directly on these geometric predictions, testing whether the theoretical
+orthogonality translates to practical compositionality.
+
+\para{Function vector composition.}
+\citet{todd2023function} discover that in-context-learned functions are
+represented as compact vectors and test their composition via
+parallelogram arithmetic. Composition succeeds for tasks with separable
+sub-operations (\eg selection $+$ transformation) but fails for
+entangled transformations (\eg translation). \citet{peng2025linear}
+identify linear transformations between related knowledge in logit space
+and show that composition requires both high correlation \emph{and} high
+transformation precision. \citet{khandelwal2025compose} study two-hop
+factual recall and find that models default to direct shortcuts when
+linear mappings exist, bypassing compositional processing entirely.
+Unlike these works, which study composition of \emph{functional}
+directions, we study composition of \emph{concept} directions---testing
+whether ``formal'' $+$ ``positive sentiment'' yields a representation
+encoding both properties.
+
+\para{Activation steering and its limitations.}
+Contrastive activation addition~\citep{stolfo2024improving} applies
+instruction-specific steering vectors to improve instruction following.
+Critically, they find that summing multiple vectors at a single layer is
+``largely unsuccessful,'' and instead apply vectors at different layers.
+\citet{tan2024analyzing} rigorously evaluate steering vector reliability,
+finding that per-sample steerability is bimodal---nearly 50\% of inputs
+can be anti-steerable for some concepts. \citet{chalnev2024improving}
+use sparse autoencoders to measure unintended side effects of steering
+and propose SAE-targeted steering to minimize collateral activation.
+These findings motivate our study: if individual steering vectors are
+already unreliable, understanding when their \emph{composition} works is
+essential for safe deployment.
+
+\para{Compositionality in neural representations.}
+Beyond steering, a broader literature examines how neural networks
+represent compositional structure. \citet{guo2025quantifying} measure
+additive compositionality using CCA and find that middle-to-late
+transformer layers show the strongest compositional signals, declining at
+the final layer. \citet{nagar2025transformer} test six composition models
+across embedding architectures and find that ridge regression and vector
+addition best account for compositional meaning. \citet{reif2025vocab}
+show that morphological variations can be captured as additive
+transformation vectors, succeeding for inflectional but failing for
+derivational morphology. \citet{dziri2023faith} argue that transformers
+solve compositional tasks via linearized subgraph matching rather than
+systematic composition. Our work complements these studies by focusing
+specifically on \emph{which} concept directions compose in the residual
+stream and \emph{what geometric properties predict} composability.

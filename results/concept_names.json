@@ -1,0 +1,12 @@
+[
+  "hierarchical/mammal_vs_bird",
+  "hierarchical/fruit_vs_vegetable",
+  "independent/positive_vs_negative_sentiment",
+  "independent/formal_vs_casual",
+  "semantic/big_vs_small",
+  "semantic/hot_vs_cold",
+  "syntactic/past_vs_present",
+  "syntactic/singular_vs_plural",
+  "entangled/happy_vs_sad",
+  "entangled/true_vs_false"
+]

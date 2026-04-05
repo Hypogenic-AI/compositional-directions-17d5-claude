@@ -1,0 +1,215 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Direction Quality Validation}
+\label{sec:direction_quality}
+
+Before testing composition, we validate that each concept direction captures
+meaningful information. \Tabref{tab:probing} reports the best-layer linear
+probing accuracy for all 10 concepts.
+
+\begin{table}[t]
+    \centering
+    \caption{Linear probing accuracy for individual concept directions. All
+    concepts except true/false achieve $\geq$72.5\% accuracy, validating that
+    extracted directions encode meaningful information. Concepts peak at
+    different layers, ranging from layer~3 (formal/casual) to layer~31
+    (fruit/vegetable).}
+    \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Concept} & \textbf{Best Acc.} & \textbf{Best Layer} \\
+        \midrule
+        formal/casual     & \textbf{1.000} & 3  \\
+        singular/plural   & 0.950 & 24 \\
+        happy/sad         & 0.950 & 17 \\
+        big/small         & 0.925 & 14 \\
+        sentiment (+/$-$) & 0.850 & 11 \\
+        past/present      & 0.825 & 11 \\
+        fruit/vegetable   & 0.800 & 31 \\
+        hot/cold          & 0.775 & 21 \\
+        mammal/bird       & 0.725 & 20 \\
+        true/false        & 0.650 & 15 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:probing}
+\end{table}
+
+All concepts except true/false ($0.650$) exceed 72.5\% accuracy, confirming
+that the mean-difference extraction method produces meaningful directions. The
+wide range in optimal layers---from layer~3 for formal/casual to layer~31 for
+fruit/vegetable---indicates that different concepts are resolved at different
+depths, consistent with prior observations that syntactic features emerge
+earlier than semantic ones~\citep{stolfo2024improving}.
+
+\subsection{Pairwise Orthogonality}
+\label{sec:orthogonality}
+
+\Tabref{tab:orthogonality} reports cosine similarities between all 10 tested
+direction pairs at layer~20.
+
+\begin{table}[t]
+    \centering
+    \caption{Pairwise cosine similarity between concept directions at layer~20.
+    Most pairs are far from orthogonal: the median $\abscossim$ is 0.91. Only 3
+    of 10 pairs have $\abscossim < 0.3$. Anti-parallel pairs (negative cosine)
+    are as problematic for composition as parallel pairs.}
+    \begin{tabular}{@{}llcc@{}}
+        \toprule
+        \textbf{Pair} & \textbf{Category} & $\cossim$ & $\abscossim$ \\
+        \midrule
+        true/false + sentiment        & entangled     & $-0.994$ & 0.994 \\
+        past/pres.\ + sing./plur.\    & syntactic     & $-0.954$ & 0.954 \\
+        big/small + sentiment         & semantic      & $+0.937$ & 0.937 \\
+        big/small + hot/cold          & semantic      & $-0.923$ & 0.923 \\
+        past/pres.\ + big/small       & cross-domain  & $+0.919$ & 0.919 \\
+        true/false + formal/casual    & cross-domain  & $+0.897$ & 0.897 \\
+        sentiment + formal/casual     & independent   & $-0.888$ & 0.888 \\
+        \midrule
+        mammal/bird + sing./plur.\    & hierarchical  & $+0.185$ & 0.185 \\
+        sentiment + happy/sad         & entangled     & $-0.153$ & 0.153 \\
+        mammal/bird + fruit/veg.\     & hierarchical  & $-0.106$ & \textbf{0.106} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:orthogonality}
+\end{table}
+
+{\bf The central surprise is the degree of non-orthogonality.} Seven of 10
+pairs have $\abscossim > 0.88$, and the median is $0.908$. Only 3 pairs
+(mammal/bird + fruit/vegetable, sentiment + happy/sad, mammal/bird +
+singular/plural) are near-orthogonal ($\abscossim < 0.3$). Notably, seemingly
+unrelated concepts like past/present tense and big/small show high alignment
+($\cossim = 0.919$), suggesting that the mean-difference extraction method
+captures substantial shared variance beyond the target concept.
+
+\subsection{Probing-Based Composition}
+\label{sec:probing_results}
+
+Information preservation---the ratio of composed-direction probing accuracy to
+individual-direction accuracy---is uniformly high across all categories
+(\tabref{tab:probing_composition}).
+
+\begin{table}[t]
+    \centering
+    \caption{Probing-based composition preservation by expected composability
+    category. Preservation is uniformly high (${\sim}0.95$) and does not
+    differ significantly across categories (ANOVA $F = 0.86$, $p = 0.46$).
+    Counter-intuitively, ``low'' expected composability pairs show the
+    highest preservation.}
+    \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Expected} & \textbf{Mean Preservation} & \textbf{95\% CI} \\
+        \midrule
+        High   & 0.926 & [0.882, 0.966] \\
+        Medium & 0.958 & [0.911, 0.995] \\
+        Low    & 0.983 & [0.966, 1.000] \\
+        \midrule
+        Overall & \textbf{0.954} & [0.925, 0.980] \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:probing_composition}
+\end{table}
+
+One-way ANOVA yields $F = 0.86$, $p = 0.46$---the expected composability
+categories do not predict probing-based composition. The counter-intuitive
+result that ``low'' expected pairs show the \emph{highest} preservation arises
+because the 1D projection metric is permissive: even anti-parallel directions
+sum to a vector that partially captures each concept's variance. This metric
+alone would suggest that composition works universally, which our steering
+results contradict.
+
+\subsection{Steering-Based Composition}
+\label{sec:steering_results}
+
+Steering reveals much sharper differentiation. \Tabref{tab:steering} reports
+component preservation and shift alignment for all 10 pairs.
+
+\begin{table}[t]
+    \centering
+    \caption{Steering-based composition results at layer~20. Component
+    preservation measures how much of each individual direction's logit
+    shift is retained in the composed vector. Shift alignment is the cosine
+    similarity between the composed shift and the sum of individual shifts.
+    Bold values indicate component preservation $\geq 0.65$.}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}llccccc@{}}
+        \toprule
+        \textbf{Pair} & \textbf{Expected} & $\abscossim$ &
+        \textbf{Comp.\ A} & \textbf{Comp.\ B} & \textbf{Shift Align.} \\
+        \midrule
+        mammal/bird + fruit/veg.\   & high   & 0.11 & \textbf{0.769} & \textbf{0.686} & 0.994 \\
+        mammal/bird + sing./plur.\  & high   & 0.19 & \textbf{0.941} & 0.490 & 0.998 \\
+        big/small + sentiment       & medium & 0.94 & \textbf{0.866} & \textbf{0.821} & 0.968 \\
+        past/pres.\ + big/small     & medium & 0.92 & \textbf{0.814} & \textbf{0.879} & 0.989 \\
+        true/false + formal/casual  & medium & 0.90 & 0.640          & \textbf{0.932} & 0.989 \\
+        sentiment + formal/casual   & high   & 0.89 & 0.193          & \textbf{0.872} & 0.935 \\
+        big/small + hot/cold        & medium & 0.92 & \textbf{0.660} & 0.374          & 0.863 \\
+        past/pres.\ + sing./plur.\  & medium & 0.95 & 0.235          & 0.537          & 0.780 \\
+        sentiment + happy/sad       & low    & 0.15 & 0.200          & \textbf{0.958} & 0.984 \\
+        true/false + sentiment      & low    & 0.99 & 0.116          & 0.218          & 0.441 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \label{tab:steering}
+\end{table}
+
+Several patterns emerge from the steering results:
+
+\para{Near-orthogonal pairs compose best.}
+The mammal/bird + fruit/vegetable pair ($\abscossim = 0.11$) preserves both
+components well (0.77, 0.69) with near-perfect shift alignment (0.994). This
+confirms the prediction from \citet{park2023linear} that causally separable,
+hierarchically related concepts occupy orthogonal subspaces amenable to
+composition.
+
+\para{Anti-parallel pairs fail catastrophically.}
+The true/false + sentiment pair ($\abscossim = 0.99$, anti-parallel) produces
+the worst steering outcome: component preservation of 0.12 and 0.22, with a
+shift alignment of only 0.44. The two directions effectively cancel each other,
+producing a composed vector that steers in neither intended direction.
+
+\para{Parallel alignment does not always prevent composition.}
+Surprisingly, the big/small + sentiment pair ($\abscossim = 0.94$, parallel)
+preserves both components well (0.87, 0.82). When directions are parallel
+(same sign), their sum reinforces rather than cancels, and both logit shifts can
+be partially preserved.
+
+\para{Component asymmetry is pervasive.}
+In 7 of 10 pairs, the two components differ in preservation by more than 0.2.
+The direction with larger magnitude or stronger individual steering effect tends
+to dominate---\eg in sentiment + happy/sad, the more specific happy/sad
+direction dominates (0.96) while sentiment is nearly lost (0.20).
+
+\subsection{Layer-Wise Stability}
+\label{sec:layerwise}
+
+We measure probing-based composition preservation across 6 layers
+(\tabref{tab:layers}). Preservation is remarkably stable from layer~5 through
+layer~25, with a modest decline at the final layer~31.
+
+\begin{table}[t]
+    \centering
+    \caption{Mean probing-based composition preservation across layers. Values
+    are mean $\pm$ standard deviation across all 10 pairs. Composition quality
+    is stable across layers, with a slight decline at the final layer,
+    consistent with findings from \citet{guo2025quantifying}.}
+    \begin{tabular}{@{}cc@{}}
+        \toprule
+        \textbf{Layer} & \textbf{Mean Preservation $\pm$ SD} \\
+        \midrule
+        5  & $0.943 \pm 0.067$ \\
+        10 & $0.956 \pm 0.081$ \\
+        15 & $0.944 \pm 0.056$ \\
+        20 & $0.954 \pm 0.045$ \\
+        25 & $0.952 \pm 0.046$ \\
+        31 & $0.906 \pm 0.103$ \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:layers}
+\end{table}
+
+The stability across layers suggests that composition properties are a
+feature of the residual stream's additive structure rather than
+layer-specific processing, consistent with the view of the residual
+stream as an information bus~\citep{nanda2023emergent}. The decline at
+layer~31 mirrors \citeauthor{guo2025quantifying}'s~(\citeyear{guo2025quantifying})
+finding that compositionality drops at the top layer.

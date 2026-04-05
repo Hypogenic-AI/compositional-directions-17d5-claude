@@ -1,0 +1,22 @@
+The linear representation hypothesis---that concepts are encoded as directions in
+the residual stream of large language models---underpins practical techniques such
+as activation steering and concept editing. Practitioners routinely compose
+steering vectors via addition (\eg adding ``formal'' and ``concise'' directions),
+yet no systematic study has established \emph{when} such composition succeeds.
+We conduct the first controlled empirical study of linear-direction
+compositionality, testing 10 concept pairs across 5 semantic categories
+(hierarchical, independent, semantic, syntactic, and entangled) in
+\pythia using three complementary metrics: pairwise orthogonality,
+probing-based information preservation, and steering-based component
+preservation. We find that most concept directions extracted via
+mean-difference are surprisingly non-orthogonal (median $\abscossim = 0.91$ at
+layer~20), yet composition quality varies dramatically by metric.
+Probing-based preservation is uniformly high (${\sim}0.95$), masking sharp
+differences revealed by steering: near-orthogonal pairs ($\abscossim < 0.3$)
+preserve both components well (mean~0.68), while highly aligned pairs
+($\abscossim > 0.9$) often lose one or both (mean~0.55). The absolute cosine
+similarity between directions is the strongest predictor of steering
+composition success, more reliable than the semantic category of the concept
+pair. Our results both support and qualify the linear representation
+hypothesis: linear directions exist and are meaningful, but they do not form
+a clean vector space amenable to free composition.

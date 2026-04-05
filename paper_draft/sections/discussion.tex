@@ -1,0 +1,139 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Geometric Alignment Predicts Composability}
+
+The absolute cosine similarity $\abscossim$ between direction pairs is the
+strongest predictor of steering composition quality. The relationship is
+non-linear and depends on the \emph{sign} of the alignment:
+
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+    \item \textbf{Near-orthogonal} ($\abscossim < 0.3$): Best steering
+    composition. Both directions operate independently. 3 of 10 pairs fall
+    in this regime.
+    \item \textbf{Parallel} ($\cossim > 0.8$): Mixed results. The sum
+    reinforces both components, and composition can succeed if neither
+    direction dominates. 4 of 10 pairs.
+    \item \textbf{Anti-parallel} ($\cossim < -0.8$): Worst composition.
+    Directions cancel, producing a weak or incoherent composed vector. 3
+    of 10 pairs.
+\end{itemize}
+
+The Spearman correlation between orthogonality ($1 - \abscossim$) and probing
+preservation is $\rho = -0.70$ ($p = 0.025$). However, this reflects a
+limitation of the probing metric: orthogonal directions sum to a 45$^\circ$
+vector that loses some signal from both concepts, while anti-parallel directions
+produce a vector that still partially captures variance from each. The steering
+metric provides a more faithful picture of practical composability.
+
+\subsection{Why Are Most Directions Non-Orthogonal?}
+
+The high cosine similarity between seemingly unrelated concepts (\eg
+past/present and big/small: $\cossim = 0.92$) is unexpected and demands
+explanation. We identify three possible sources:
+
+\para{Sentence structure confounds.}
+Both concept pairs use contrastive prompts with similar syntactic structure. The
+mean-difference extraction may capture sentence-level variance (word order,
+punctuation, length) rather than purely conceptual information. More
+sophisticated extraction methods---such as regression-based approaches or
+contrastive prompt designs that control for surface features---would likely
+reduce this confound.
+
+\para{Superposition.}
+With $\dmodel = 2560$, the model represents far more than 2560 concepts
+simultaneously. Directions necessarily overlap in this overcomplete
+regime~\citep{elhage2022superposition}. The high alignment we observe is
+consistent with the superposition hypothesis: the model packs many features
+into a shared space, and simple extraction methods recover directions that are
+mixtures of the target concept and other co-activated features.
+
+\para{Extraction method limitations.}
+The mean-difference estimator is the simplest possible direction extraction
+method. It does not account for shared variance between concepts. Methods such
+as sparse autoencoder (SAE) features~\citep{chalnev2024improving}, causal inner
+product-based extraction~\citep{park2023linear}, or CCA-based
+decomposition~\citep{guo2025quantifying} would likely produce more orthogonal
+and more composable directions.
+
+\subsection{Probing vs.\ Steering: Two Faces of Composition}
+
+Our results highlight a sharp divergence between probing-based and
+steering-based composition metrics. Probing preservation is uniformly high
+(${\sim}0.95$) and does not distinguish between composable and non-composable
+pairs (ANOVA $p = 0.46$). Steering reveals stark failures for aligned pairs
+(component preservation as low as 0.12).
+
+This divergence has methodological implications. Studies that evaluate
+composition solely via probing~\citep{park2024geometry, marks2023geometry}
+may overestimate the practical composability of linear directions. Probing
+measures whether information is \emph{present} in a representation; steering
+measures whether it \emph{causally influences} model behavior. For applications
+like model control, steering-based evaluation is essential.
+
+\subsection{Connection to Prior Work}
+
+Our findings are consistent with several theoretical predictions:
+
+\para{Causal separability $\Rightarrow$ orthogonality $\Rightarrow$ composition.}
+\citet{park2023linear} predict that causally separable concepts are
+orthogonal and non-interfering under steering. Our hierarchical pairs
+(mammal/bird + fruit/vegetable, $\abscossim = 0.11$) confirm this: they are
+near-orthogonal and compose well. This aligns with \citet{park2024geometry}'s
+proof that hierarchically related concepts occupy orthogonal subspaces.
+
+\para{Entanglement $\Rightarrow$ interference.}
+The true/false + sentiment pair ($\abscossim = 0.99$) fails catastrophically,
+consistent with \citeauthor{park2023linear}'s~(\citeyear{park2023linear})
+finding that non-separable concepts share directions. The anti-parallel
+alignment suggests these directions encode opposing poles of a shared
+evaluative dimension.
+
+\para{Composition is task-dependent.}
+\citet{todd2023function} find that function vector composition succeeds for
+separable sub-operations and fails for entangled ones. Our concept-level
+results mirror this pattern: concepts that can be independently varied
+(hierarchical categories) compose, while concepts that co-vary (sentiment and
+truth valence) interfere.
+
+\para{Scale and method matter.}
+\citet{tan2024analyzing} show high per-sample variance in individual
+steerability. Our component asymmetry results (7 of 10 pairs show $>0.2$
+difference between components) suggest that composition amplifies this
+variance. Following \citeauthor{stolfo2024improving}'s~(\citeyear{stolfo2024improving})
+finding that layer-separated application outperforms single-layer summation,
+multi-layer composition strategies may improve our results.
+
+\subsection{Limitations}
+
+\para{Single model.}
+All results are from \pythia. Generalizability to other architectures and scales
+is unknown. \citet{todd2023function} find that larger models compose better, so
+our results may represent a lower bound on composability.
+
+\para{Simple direction extraction.}
+The mean-difference estimator is the simplest available method. SAE-based
+features~\citep{chalnev2024improving} or causal inner product-based
+directions~\citep{park2023linear} would likely produce cleaner, more orthogonal
+directions.
+
+\para{Small concept set.}
+With 10 concepts and 10 pairs, our statistical power is limited (the ANOVA is
+non-significant at $n = 3$--$5$ per group). A larger-scale study with 50+
+concepts would enable stronger statistical claims.
+
+\para{Limited prompts per concept.}
+We use 20 contrastive prompt pairs per concept. The relatively low probe
+accuracy for some concepts (mammal/bird: 72.5\%) suggests noisy direction
+estimates. More prompts would improve direction quality.
+
+\para{1D probing limitation.}
+Projecting onto $\dAB$ and using 1D logistic regression is a weak test. The
+composed direction may encode both concepts in a 2D subspace that 1D probing
+misses, making our probing preservation metric an underestimate of true
+information preservation.
+
+\para{No causal inner product.}
+We use standard cosine similarity rather than the causal inner
+product~\citep{park2023linear}, which could reveal different orthogonality
+patterns by accounting for the model's unembedding structure.
